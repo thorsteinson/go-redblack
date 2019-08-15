@@ -133,7 +133,7 @@ func TestRotationLeafPanic(t *testing.T) {
 }
 
 func TestRotationTreeRootPreservation(t *testing.T) {
-	tree, _, _:= genTestTree()
+	tree, _, _ := genTestTree()
 	expectedLeftRoot := tree.root.right
 
 	tree.rotateLeft(tree.root)
@@ -168,5 +168,14 @@ func TestRotationPreservesTraversalOrder(t *testing.T) {
 		if !reflect.DeepEqual(tree.traverse(), traversal) {
 			t.Errorf("Broken ordering. Right(%v): %v", ns[i].key, tree.traverse())
 		}
+	}
+}
+
+func TestSimpleGetPut(t *testing.T) {
+	m := New()
+	m.Put(1, "test1")
+	v, _ := m.Get(1)
+	if v != "test1" {
+		t.Error("Failed to get and put in a new tree")
 	}
 }
