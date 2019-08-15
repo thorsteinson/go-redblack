@@ -159,3 +159,20 @@ func TestRotationLeafPanic(t *testing.T) {
 		}
 	}
 }
+
+func TestRotationTreeRootPreservation(t *testing.T) {
+	tree, _, _:= genTestTree()
+	expectedLeftRoot := tree.root.right
+
+	tree.rotateLeft(tree.root)
+	if expectedLeftRoot != tree.root {
+		t.Error("Tree root improperly updated during left rotation")
+	}
+
+	tree, _, _ = genTestTree()
+	expectedRightRoot := tree.root.left
+	tree.rotateRight(tree.root)
+	if expectedRightRoot != tree.root {
+		t.Error("Tree root improperly updated during right rotation")
+	}
+}
