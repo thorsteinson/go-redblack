@@ -6,19 +6,11 @@ import (
 )
 
 func TestTraversal(t *testing.T) {
-	n1 := node{key: 1}
-	n2 := node{key: 2}
-	n3 := node{key: 3}
-	n4 := node{key: 4}
+	tree, _, _ := genTestTree()
 
-	tr := &tree{root: &n2}
-	n2.left = &n1
-	n2.right = &n3
-	n3.right = &n4
-
-	expectedOrder := []*node{&n1, &n2, &n3, &n4}
-	if !reflect.DeepEqual(expectedOrder, tr.traverse()) {
-		t.Error("Improper ordering found in traversal")
+	expectedOrder := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+	if !reflect.DeepEqual(expectedOrder, tree.traverse()) {
+		t.Errorf("Improper ordering: %v", tree.traverse())
 	}
 }
 
@@ -49,19 +41,33 @@ func genTestTree() (t *tree, nonLeaves []*node, leaves []*node) {
 
 	t = &tree{root: &n8}
 	n8.left = &n4
-	n8.right = &n14
+	n8.right = &n12
 	n4.left = &n2
 	n4.right = &n6
+	n4.parent = &n8
 	n2.left = &n1
 	n2.right = &n3
+	n2.parent = &n4
 	n6.left = &n5
 	n6.right = &n7
+	n6.parent = &n4
 	n12.left = &n10
 	n12.right = &n14
+	n12.parent = &n8
 	n10.left = &n9
 	n10.right = &n11
+	n10.parent = &n12
 	n14.left = &n13
 	n14.right = &n15
+	n14.parent = &n12
+	n1.parent = &n2
+	n3.parent = &n2
+	n5.parent = &n6
+	n7.parent = &n6
+	n9.parent = &n10
+	n11.parent = &n10
+	n13.parent = &n14
+	n15.parent = &n14
 
 	return t, []*node{&n8, &n4, &n12, &n2, &n6, &n10, &n14}, []*node{&n1, &n3, &n5, &n7, &n9, &n11, &n13, &n15}
 }
@@ -95,40 +101,6 @@ func TestRotationInversion(t *testing.T) {
 		if newTree, _, _ := genTestTree(); !deepEqualTree(tree, newTree) {
 			t.Errorf("Node with key %v broke inversion", node.key)
 		}
-	}
-}
-
-func TestLeftRotation(t *testing.T) {
-	n1 := node{}
-	n2 := node{}
-	n3 := node{}
-	n4 := node{}
-
-	tr := &tree{root: &n1}
-	n1.right = &n2
-	n2.left = &n3
-	n2.right = &n4
-
-	expectedOrder := []*node{&n1, &n3, &n2, &n4}
-	if !reflect.DeepEqual(expectedOrder, tr.traverse()) {
-		t.Error("Improper left rotation")
-	}
-}
-
-func TestRightRotation(t *testing.T) {
-	n1 := node{}
-	n2 := node{}
-	n3 := node{}
-	n4 := node{}
-
-	tr := &tree{root: &n1}
-	n1.right = &n2
-	n2.left = &n3
-	n2.right = &n4
-
-	expectedOrder := []*node{&n1, &n3, &n2, &n4}
-	if !reflect.DeepEqual(expectedOrder, tr.traverse()) {
-		t.Error("Improper right rotation")
 	}
 }
 
@@ -174,5 +146,27 @@ func TestRotationTreeRootPreservation(t *testing.T) {
 	tree.rotateRight(tree.root)
 	if expectedRightRoot != tree.root {
 		t.Error("Tree root improperly updated during right rotation")
+	}
+}
+
+func TestRotationPreservesTraversalOrder(t *testing.T) {
+	originalTree, ns, _ := genTestTree()
+	traversal := originalTree.traverse()
+
+	t.Logf("Expected Ordering: %v", traversal)
+	for i := 0; i < len(ns); i++ {
+		tree, nodes, _ := genTestTree()
+		tree.rotateLeft(nodes[i])
+		if !reflect.DeepEqual(tree.traverse(), traversal) {
+			t.Errorf("Broken ordering. Left(%v): %v", ns[i].key, tree.traverse())
+		}
+	}
+
+	for i := 0; i < len(ns); i++ {
+		tree, nodes, _ := genTestTree()
+		tree.rotateRight(nodes[i])
+		if !reflect.DeepEqual(tree.traverse(), traversal) {
+			t.Errorf("Broken ordering. Right(%v): %v", ns[i].key, tree.traverse())
+		}
 	}
 }

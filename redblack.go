@@ -20,20 +20,29 @@ type tree struct {
 }
 
 func (t *tree) rotateLeft(x *node) {
-	var y, alpha, beta, gamma *node
+	var y, beta, parent *node
 	y = x.right
+	parent = x.parent
 
-	alpha = x.left
 	beta = y.left
-	gamma = y.right
+	if beta != nil {
+		beta.parent = x
+	}
 
-	x.left = alpha
 	x.right = beta
-	y.left = x
-	y.right = gamma
-
-	y.parent = x.parent
 	x.parent = y
+
+	y.parent = parent
+	y.left = x
+
+	// Make sure to update the parent relationship
+	if parent != nil {
+		if parent.left == x {
+			parent.left = y
+		} else {
+			parent.right = y
+		}
+	}
 
 	// Don't forget to update the root of the tree
 	if t.root == x {
@@ -42,39 +51,47 @@ func (t *tree) rotateLeft(x *node) {
 }
 
 func (t *tree) rotateRight(y *node) {
-	var x, alpha, beta, gamma *node
+	var x, beta, parent *node
 	x = y.left
+	parent = y.parent
 
-	alpha = x.left
 	beta = x.right
-	gamma = y.right
+	if beta != nil {
+		beta.parent = y
+	}
 
-	x.left = alpha
-	x.right = y
 	y.left = beta
-	y.right = gamma
-
-	x.parent = y.parent
 	y.parent = x
 
+	x.parent = parent
+	x.right = y
+
+	// Make sure to update the parent relationship
+	if parent != nil {
+		if parent.left == y {
+			parent.left = x
+		} else {
+			parent.right = x
+		}
+	}
 	// Don't forget to update the root of the tree
 	if t.root == y {
 		t.root = x
 	}
 }
 
-// Does an in order traversal and collects all of the nodes into a slice
-func (t *tree) traverse() []*node {
-	nodes := []*node{}
+// Does an in order traversal and collects all of the keys into a slice
+func (t *tree) traverse() []int {
+	keys := []int{}
 
-	traverseHelper(t.root, &nodes)
-	return nodes
+	traverseHelper(t.root, &keys)
+	return keys
 }
 
-func traverseHelper(n *node, nodeList *[]*node) {
+func traverseHelper(n *node, keys *[]int) {
 	if n != nil {
-		traverseHelper(n.left, nodeList)
-		*nodeList = append(*nodeList, n)
-		traverseHelper(n.right, nodeList)
+		traverseHelper(n.left, keys)
+		*keys = append(*keys, n.key)
+		traverseHelper(n.right, keys)
 	}
 }
