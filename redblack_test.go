@@ -179,3 +179,21 @@ func TestSimpleGetPut(t *testing.T) {
 		t.Error("Failed to get and put in a new tree")
 	}
 }
+
+func TestPutIdempotence(t *testing.T) {
+	m := New()
+	m.Put(1, "test1")
+	m.Put(1, "updated")
+	v, _ := m.Get(1)
+	if v != "updated" {
+		t.Error("Put is not idempotent")
+	}
+}
+
+func TestGetMissingValue(t *testing.T) {
+	m := New()
+	_, ok := m.Get(1)
+	if ok {
+		t.Error("False positive when retrieving value")
+	}
+}
