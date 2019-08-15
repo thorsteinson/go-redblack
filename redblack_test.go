@@ -131,3 +131,31 @@ func TestRightRotation(t *testing.T) {
 		t.Error("Improper right rotation")
 	}
 }
+
+func willPanic(f func()) (panicked bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			panicked = true
+		}
+	}()
+	f()
+	return panicked
+}
+
+// When rotate is called with on a node of a tree that is a leaf, we
+// should panic
+func TestRotationLeafPanic(t *testing.T) {
+	tree, _, leaves := genTestTree()
+	for _, leaf := range leaves {
+		if !willPanic(func() {
+			tree.rotateLeft(leaf)
+		}) {
+			t.Error("Left rotation failed to panic on leaf node")
+		}
+		if !willPanic(func() {
+			tree.rotateRight(leaf)
+		}) {
+			t.Error("Right rotation failed to panic on leaf node")
+		}
+	}
+}
