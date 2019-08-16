@@ -1,6 +1,7 @@
 package redblack
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -177,6 +178,42 @@ func TestSimpleGetPut(t *testing.T) {
 	v, _ := m.Get(1)
 	if v != "test1" {
 		t.Error("Failed to get and put in a new tree")
+	}
+	RBPropertyTest(m, t)
+}
+
+func TestPutRight(t *testing.T) {
+	m := New()
+	m.Put(0, nil)
+	m.Put(1, nil)
+	if m.root.right.key != 1 {
+		t.Error ("Put inserted in wrong direction")
+	}
+}
+
+func TestPutLeft(t *testing.T) {
+	m := New()
+	m.Put(0, nil)
+	m.Put(-1, nil)
+	if m.root.left.key != -1 {
+		t.Error ("Put inserted in wrong direction")
+	}
+}
+
+
+
+func TestManyPut(t *testing.T) {
+	m := New()
+	for i := 0; i < 100; i++ {
+		m.Put(i, fmt.Sprint(i))
+	}
+	RBPropertyTest(m, t)
+
+	// Tests with insertions in other direction, ensuring that the
+	// other branch of logic works
+	m = New()
+	for i := 100; i > 0; i-- {
+		m.Put(i, fmt.Sprint(i))
 	}
 	RBPropertyTest(m, t)
 }
