@@ -1,9 +1,5 @@
 package redblack
 
-import (
-	"fmt"
-)
-
 type color bool
 
 const (
@@ -146,42 +142,72 @@ func descend(n *node, p *node, k int) (node *node, parent *node) {
 	}
 }
 
+func checkColor(n *node) color {
+	if n == nil {
+		return black
+	}
+	return n.color
+}
+
 // Called after performing a new insertion. This will restore balance
 // to the tree and esnure the properties of the redblack tree are
 // all true
 func fixupInsertion(t *tree, n *node) {
-	fmt.Println("Fixup called")
-	// Guard against reference errors
-	if n.parent != nil && n.parent.parent != nil {
-		for n.parent.color == red {
-			if n.parent == n.parent.parent.left {
-				n = n.parent.parent.right
-				if n.color == red {
-					n.parent.color = black
-					n.color = black
-					n.parent.parent.color = red
-					n = n.parent.parent
-				} else if n == n.parent.right {
-					n = n.parent
-					t.rotateLeft(n)
-					n.parent.color = black
-					n.parent.parent.color = red
-					t.rotateRight(n.parent.parent)
-				}
+	// When we begin this loop, the following conditions are true:
+	// - The node is red
+	// - If the parent is nil, it's color is black
+	// - If the tree is violating any of the RBTree properties then it
+	// can only be violating at most one of them.
+	for checkColor(n.parent) == red {
+		// Checks which side of the tree we're on
+		if n.parent == n.parent.parent.left {
+			// y is the uncle of node n, which may be nil
+			y := n.parent.parent.right
+			if checkColor(y) == red {
+				// Occurs when both parent and uncle are red
+				n.parent.color = black
+				y.color = black
+				n.parent.parent.color = red
+				n = n.parent.parent
+				// By setting the colors in this way, we ensure that
+				// we'll go through another iteration of the loop. We
+				// move the node pointer to it's grandfather. This
+				// branch ensures that the no red children of the
+				// subtree have red nodes as children
 			} else {
-				n = n.parent.parent.left
-				if n.color == red {
-					n.parent.color = black
-					n.color = black
-					n.parent.parent.color = red
-					n = n.parent.parent
-				} else if n == n.parent.left {
+				if n == n.parent.right {
+					// Occurs when the uncle of n (y) is black, and n is
+					// right child
+					n = n.parent
+					// Perform a rotation immediately, which is needed
+					// for the next steps
+					t.rotateLeft(n)
+				}
+				// Occurs when the uncle is black, and n is a left
+				// child. If it wasn't a left chiild, we just made it one.
+				n.parent.color = black
+				n.parent.parent.color = red
+				t.rotateRight(n.parent.parent)
+				// The loop should terminate at this point, since n
+				// will now be black
+			}
+		} else {
+			// This is symetrical to above. The only difference is
+			// that the directions right and left are swapped.
+			y := n.parent.parent.left
+			if checkColor(y) == red {
+				n.parent.color = black
+				y.color = black
+				n.parent.parent.color = red
+				n = n.parent.parent
+			} else {
+				if n == n.parent.left {
 					n = n.parent
 					t.rotateRight(n)
-					n.parent.color = black
-					n.parent.parent.color = red
-					t.rotateLeft(n.parent.parent)
 				}
+			n.parent.color = black
+			n.parent.parent.color = red
+			t.rotateLeft(n.parent.parent)
 			}
 		}
 	}
