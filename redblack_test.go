@@ -178,6 +178,7 @@ func TestSimpleGetPut(t *testing.T) {
 	if v != "test1" {
 		t.Error("Failed to get and put in a new tree")
 	}
+	RBPropertyTest(m, t)
 }
 
 func TestPutIdempotence(t *testing.T) {
@@ -196,4 +197,81 @@ func TestGetMissingValue(t *testing.T) {
 	if ok {
 		t.Error("False positive when retrieving value")
 	}
+}
+
+// Tests that the root of the tree is black
+func rootIsBlack(tree *tree, t *testing.T) {
+	if tree.root != nil {
+		if tree.root.color != black {
+			t.Error("Tree root is not black")
+		}
+	}
+}
+
+// Tests an RBTree to ensure that every red node has only black
+// children
+func hasBlackChildProperty(tree *tree, t *testing.T) {
+	if tree.root != nil {
+		if !hasBlackChildPropertyHelper(tree.root) {
+			t.Error("Tree contains RED node with RED children")
+		}
+	}
+}
+
+func hasBlackChildPropertyHelper(n *node) bool {
+	if n == nil {
+		return true
+	}
+	if n.parent == nil {
+		// Doesn't apply to root
+		return true
+	} else {
+		if n.color == red && n.parent.color == red {
+			return false
+		} else {
+			return hasBlackChildPropertyHelper(n.left) &&
+				hasBlackChildPropertyHelper(n.right)
+		}
+	}
+}
+
+// Tests an RBTree to see whether or not the black height is identical
+// for all paths from the root of the tree to leaves. Black height is
+// the number of black nodes along a path.
+func uniformBlackDepth(tree *tree, t *testing.T) {
+	if tree.root == nil {
+		return
+	}
+	measures := []int{}
+	blackDepthMeasure(tree.root, 0, &measures)
+	m0 := measures[0]
+	for _, m := range measures {
+		if m0 != m {
+			t.Error("Tree lacks uniform black depth")
+			break
+		}
+	}
+}
+
+func blackDepthMeasure(n *node, depth int, measures *[]int) {
+	if n == nil {
+		depth++ // Nil pointers are considered to be black
+		// Record the measure once we reach a leaf node
+		*measures = append(*measures, depth)
+		return
+	}
+	if n.color == black {
+		depth++
+	}
+	blackDepthMeasure(n.left, depth, measures)
+	blackDepthMeasure(n.right, depth, measures)
+}
+
+// This wraps serveral other testing functions into one that tests all
+// the properties that a red black tree should exhibit after any
+// client operation.
+func RBPropertyTest(tree *tree, t *testing.T) {
+	rootIsBlack(tree, t)
+	hasBlackChildProperty(tree, t)
+	uniformBlackDepth(tree, t)
 }
