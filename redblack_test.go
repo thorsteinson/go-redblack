@@ -218,6 +218,28 @@ func TestManyPut(t *testing.T) {
 	RBPropertyTest(m, t)
 }
 
+func TestDeleteOne(t *testing.T) {
+	m := New()
+	m.Put(0, "hello")
+	m.Delete(0)
+	if _, ok := m.Get(0); ok {
+		t.Errorf("Value found after deletion")
+	}
+}
+
+func TestDeleteMany(t *testing.T) {
+	m := New()
+	for i := 0; i < 10; i++ {
+		m.Put(i, fmt.Sprint(i))
+	}
+	RBPropertyTest(m, t)
+	for i := 0; i < 10; i++ {
+		t.Logf("Deleting: %v", i)
+		m.Delete(i)
+		RBPropertyTest(m, t)
+	}
+}
+
 func TestPutIdempotence(t *testing.T) {
 	m := New()
 	m.Put(1, "test1")

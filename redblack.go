@@ -229,3 +229,118 @@ func (t *tree) Get(k int) (v interface{}, ok bool) {
 func New() *tree {
 	return &tree{root: nil}
 }
+
+func (t *tree) transplant(u *node, v *node) {
+	if u.parent == nil {
+		t.root = v
+	} else if u == u.parent.left {
+		u.parent.left = v
+	} else {
+		u.parent.right = v
+	}
+	if v !=nil {
+		v.parent = u.parent
+	}
+}
+
+func minimum(n *node) *node {
+	if n.left == nil {
+		return n
+	}
+	return minimum(n.left)
+}
+
+func (t *tree) Delete(k int) {
+	// first find the node with the given key
+	n, _ := descend(t.root, nil, k)
+	p := n.parent
+
+	y := n
+	yColorOriginal := y.color
+	var x *node
+	if n.left == nil {
+		x = n.right
+		t.transplant(n, n.right)
+	} else if n.right == nil {
+		x = n.left
+		t.transplant(n, n.left)
+	} else {
+		y = minimum(n.right)
+		yColorOriginal = y.color
+		x = y.right
+		if y.parent == n {
+			x.parent = y
+		} else {
+			t.transplant(n, y)
+			y.right = n.right
+			y.right.parent = y
+		}
+		t.transplant(n, y)
+		y.left = n.left
+		y.left.parent = y
+		y.color = n.color
+	}
+	if yColorOriginal == black {
+		t.fixupDeletion(x, p)
+	}
+}
+
+func (t *tree) fixupDeletion(x *node, p *node) {
+
+	for x != t.root && checkColor(x) == black {
+		if x == p.left {
+			w := p.right
+			if checkColor(w) == red {
+				w.color = black
+				p.color = red
+				t.rotateLeft(p)
+				w = p.right
+			}
+			if checkColor(w.left) == black && checkColor(w.right) == black {
+				w.color = red
+				x = p
+				p = x.parent
+			} else {
+				if checkColor(w.right) == black {
+					w.left.color = black
+					w.color = red
+					t.rotateRight(w)
+					w = p.right
+				}
+				w.color = p.color
+				p.color = black
+				w.right.color = black
+				t.rotateLeft(p)
+				x = t.root
+			}
+		} else {
+			w := p.left
+			if checkColor(w) == red {
+				w.color = black
+				p.color = red
+				t.rotateRight(p)
+				w = p.left
+			}
+			if checkColor(w.right) == black && checkColor(w.left) == black {
+				w.color = red
+				x = p
+				p = x.parent
+			} else {
+				if checkColor(w.left) == black {
+					w.right.color = black
+					w.color = red
+					t.rotateLeft(w)
+					w = p.left
+				}
+				w.color = p.color
+				p.color = black
+				w.left.color = black
+				t.rotateRight(p)
+				x = t.root
+			}
+		}
+	}
+	if x != nil {
+		x.color = black
+	}
+}
